@@ -1,0 +1,43 @@
+package Process;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.net.Socket;
+
+import peer.MessageBody;
+import peer.PeerConnect;
+public class SendMessage extends Thread {
+
+	@Override
+	public void run() {
+		
+		while(true) {
+			
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				System.err.println(e);
+			}
+
+			if(!PeerConnect.messageBody.isEmpty()) {
+				
+				synchronized (PeerConnect.messageBody) {
+					MessageBody m = PeerConnect.messageBody.poll();
+					Socket socket = m.getSocket();
+					byte[] message = m.getMessage();
+					sendMessage(socket, message);
+				}
+			}
+		}
+	}
+	public void sendMessage(Socket socket, byte[] message) {
+		
+		try {
+			ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
+			synchronized (socket) {
+				out.writeObject(message);
+			}
+		} catch (IOException e) {
+			System.err.println(e);
+		}
+	}
+}
